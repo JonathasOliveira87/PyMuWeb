@@ -64,12 +64,14 @@ def site_config(request):
 
 
 def get_total_online(request):
-    # Contar o total de jogadores online
-    with connections['muonline'].cursor() as cursor:
-        cursor.execute("SELECT COUNT(*) AS TotalOnline FROM MEMB_STAT WHERE ConnectStat = 1")
-        total_online = cursor.fetchone()[0]  # Acessa o valor diretamente
-
-    # Se total_online for None, substitua por 0
-    total_online = total_online if total_online is not None else 0
-
+    total_online = 0  # Valor padrão
+    if request.resolver_match:  # Garante que a requisição esteja sendo processada corretamente
+        try:
+            conn = conexao_mssql()  # Obtém a conexão com o banco de dados
+            if conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT COUNT(*) AS TotalOnline FROM MEMB_STAT WHERE ConnectStat = 1")
+                    total_online = cursor.fetchone()[0] or 0
+        except Exception as e:
+            print(f"Erro ao buscar total de online: {e}")  # Apenas para depuração
     return {'total_online': total_online}

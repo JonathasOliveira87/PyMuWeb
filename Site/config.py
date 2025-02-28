@@ -2,6 +2,30 @@
 # temas disponíveis
 templates = ['kingrox', 'pZone']
 
+import pyodbc
+
+
+# Função para obter a conexão com o banco de dados
+def conexao_mssql():
+    global conn
+    conn = None
+    if conn is None:  # Se a conexão não existir ainda
+        try:
+            conn = pyodbc.connect(
+                "DRIVER={SQL Server};"
+                "SERVER=127.0.0.1,1433;"  # Endereço do servidor
+                "DATABASE=MuOnlineS6;"  # Nome do banco de dados
+                "UID=sa;"  # Usuário
+                "PWD=123456;"  # Senha
+                "TrustServerCertificate=yes;"  # Ignora a validação do certificado (útil para desenvolvimento)
+            )
+            print("Conexão bem-sucedida!")
+        except pyodbc.Error as e:
+            print(f"Erro ao conectar ao banco de dados: {e}")
+            conn = None  # Se houver erro, a conexão será definida como None
+    return conn
+
+
 
 # Definindo as colunas específicas
 columnsCharacter = {

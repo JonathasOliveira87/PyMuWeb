@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import UserTheme, Slide, DownloadList, Info,  SiteConfig, VIPType, descriptionVip, VIPAdvantage, Event, Comentario, Noticia, CastleSiege, SiteConfig
-from django.db import connections
+from .models import UserTheme, Slide, DownloadList, Info, SiteConfig, VIPType, descriptionVip, VIPAdvantage, Event, Comentario, Noticia, CastleSiege, SiteConfig
 from django.core.exceptions import ValidationError
-from django.db import connections
 from .config import conexao_mssql
+import pyodbc
 
 
 class VIPTypeInline(admin.TabularInline):
@@ -39,18 +38,24 @@ class SiteConfigAdmin(admin.ModelAdmin):
 def validate_single_instance():
     if SiteConfig.objects.count() > 1:
         raise ValidationError("Apenas uma configuração é permitida.")
-    
 
 
 
-# Verifica se a tabela CastleSiege existe no banco de dados
+
+# Função para verificar se a tabela existe
 def table_exists(table_name):
-    conn = conexao_mssql()  # Usar a conexão global
-    with conn.cursor() as cursor:
-        cursor.execute(
-            "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?", [table_name]
-        )
-        return cursor.fetchone()[0] == 1
+    conn = conexao_mssql()  # Conecta ao banco de dados
+    if conn is None:
+        print("Erro: Conexão com o banco de dados não estabelecida.")
+        return False
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(f"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?", table_name)
+            result = cursor.fetchone()
+            return result[0] > 0
+    except pyodbc.Error as e:
+        print(f"Erro ao verificar a tabela: {e}")
+        return False
 
 
 
@@ -68,7 +73,7 @@ if table_exists('MuCastle_DATA'):
 
         def has_add_permission(self, request):
             return False  # Remove o botão "Adicionar"
-            
+
         list_display = ['MAP_SVR_GROUP', 'StartSiege', 'EndSiege', 'OWNER_GUILD']
 
 
@@ -76,7 +81,7 @@ if table_exists('MuCastle_DATA'):
 
 
 
-        
+
 @admin.register(Slide)
 class UserThemeAdmin(admin.ModelAdmin):
     list_display = ('title', 'image', 'image_url')  # Defina quais campos mostrar na listagem
@@ -105,7 +110,7 @@ class InfoAdmin(admin.ModelAdmin):
 @admin.register(VIPAdvantage)
 class VIPAdvantageAdmin(admin.ModelAdmin):
     list_display = ('vip_type', 'description', 'value')
-    
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ('name', 'event_day', 'formatted_time')

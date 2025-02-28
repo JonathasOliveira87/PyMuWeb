@@ -1,7 +1,10 @@
 from django.contrib import admin
-from .models import UserTheme, Slide, DownloadList, Info,  SiteConfig, VIPType, descriptionVip, VIPAdvantage, Event, Comentario, Noticia, CastleSiege
+from .models import UserTheme, Slide, DownloadList, Info,  SiteConfig, VIPType, descriptionVip, VIPAdvantage, Event, Comentario, Noticia, CastleSiege, SiteConfig
 from django.db import connections
 from django.core.exceptions import ValidationError
+from django.db import connections
+from .config import conexao_mssql
+
 
 class VIPTypeInline(admin.TabularInline):
     model = VIPType
@@ -36,47 +39,44 @@ class SiteConfigAdmin(admin.ModelAdmin):
 def validate_single_instance():
     if SiteConfig.objects.count() > 1:
         raise ValidationError("Apenas uma configuração é permitida.")
+    
 
 
 
+# Verifica se a tabela CastleSiege existe no banco de dados
+def table_exists(table_name):
+    conn = conexao_mssql()  # Usar a conexão global
+    with conn.cursor() as cursor:
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?", [table_name]
+        )
+        return cursor.fetchone()[0] == 1
 
-from django.db import connections
 
-def register_castle_siege_admin():
-    # Conectar explicitamente ao banco 'muonline'
-    with connections['muonline'].cursor() as cursor:
-        cursor.execute("""
-            SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_NAME = 'MuCastle_DATA'
-        """)
-        table_exists = cursor.fetchone()[0]
 
-        if table_exists:
-            # Registrar o modelo no Admin somente se a tabela existir
-            class CastleSiegeAdmin(admin.ModelAdmin):
-                def get_queryset(self, request):
-                    queryset = super().get_queryset(request)
-                    return queryset.using('muonline')  # Garante que a consulta usa o banco 'muonline'
+if table_exists('MuCastle_DATA'):
+    @admin.register(CastleSiege)
+    class CastleSiegeAdmin(admin.ModelAdmin):
 
-                def save_model(self, request, obj, form, change):
-                    # Forçar o uso do banco 'muonline' ao salvar o modelo
-                    obj.save(using='muonline')
+        def get_queryset(self, request):
+            queryset = super().get_queryset(request)
+            return queryset.using('muonline')  # Garante que a consulta usa o banco 'muonline'
 
-                def has_add_permission(self, request):
-                    return False  # Remove o botão "Adicionar"
-                    
-                list_display = ['MAP_SVR_GROUP', 'StartSiege', 'EndSiege', 'OWNER_GUILD']
+        def save_model(self, request, obj, form, change):
+            # Forçar o uso do banco 'muonline' ao salvar o modelo
+            obj.save(using='muonline')
 
-            # Registrar o modelo no admin
-            admin.site.register(CastleSiege, CastleSiegeAdmin)
-
-# Chamar a função para verificar e registrar o modelo no admin
-register_castle_siege_admin()
+        def has_add_permission(self, request):
+            return False  # Remove o botão "Adicionar"
+            
+        list_display = ['MAP_SVR_GROUP', 'StartSiege', 'EndSiege', 'OWNER_GUILD']
 
 
 
 
 
+
+        
 @admin.register(Slide)
 class UserThemeAdmin(admin.ModelAdmin):
     list_display = ('title', 'image', 'image_url')  # Defina quais campos mostrar na listagem

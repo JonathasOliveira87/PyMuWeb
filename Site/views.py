@@ -3,12 +3,11 @@ from .models import Slide, Noticia, Comentario, SiteConfig, DownloadList, VIPTyp
 from django.contrib import messages
 import base64
 from PIL import Image, ImageDraw
-from django.db import connections
 from .forms import CadastroForm, LoginForm, MudarSenhaForm, MudarIDForm, MudarClasseForm, AlterarNomeForm
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.contrib.auth import login, logout
-from django.db import connection, transaction
+from django.db import transaction
 from .config import *
 
 
@@ -40,7 +39,7 @@ def generate_guild_mark(decoded_hex, size=130):
     expected_length = 64
     if len(decoded_hex) != expected_length:
         print(f"Alerta: O código hexadecimal tem {len(decoded_hex)} caracteres, mas espera-se {expected_length}.")
-    
+
     image = Image.new("RGB", (size, size), (255, 255, 255))
     draw = ImageDraw.Draw(image)
     block_size = size // 8
@@ -98,10 +97,10 @@ def get_top_guild_logo():
     else:
         top_guild = None
 
-    
+
     if top_guild and top_guild.get("G_mark"):
         img_data = top_guild["G_mark"]
-        
+
         if isinstance(img_data, bytes):
             decoded_hex = decode_bytes(img_data)
             image = generate_guild_mark(decoded_hex, size=129)
@@ -111,7 +110,7 @@ def get_top_guild_logo():
             buffer = BytesIO()
             image.save(buffer, format="PNG")
             img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            
+
             return img_base64
     return None
 
@@ -127,7 +126,7 @@ def get_castle_siege_info():
 
         # Consulta para verificar se a tabela MuCastle_DATA existe
         cursor.execute("""
-            SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES 
+            SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES
             WHERE TABLE_NAME = 'MuCastle_DATA'
         """)
         table_exists = cursor.fetchone()[0]
@@ -137,18 +136,18 @@ def get_castle_siege_info():
 
         # Se a tabela existir, busca os dados do Castle Siege
         cursor.execute("""
-            SELECT OWNER_GUILD, SIEGE_START_DATE, SIEGE_END_DATE 
+            SELECT OWNER_GUILD, SIEGE_START_DATE, SIEGE_END_DATE
             FROM MuCastle_DATA
         """)
-        
+
         row = cursor.fetchone()
         if row:
             return {
-                "OWNER_GUILD": row[0], 
-                "SIEGE_START_DATE": row[1], 
+                "OWNER_GUILD": row[0],
+                "SIEGE_START_DATE": row[1],
                 "SIEGE_END_DATE": row[2]
             }
-        
+
         return None  # Retorna None se não encontrar nenhum dado
 
     except pyodbc.Error as e:
@@ -184,7 +183,7 @@ def home(request):
                     cursor.execute("""
                         SELECT G_Master FROM Guild WHERE G_Name = ?
                     """, [castle_siege_info["OWNER_GUILD"]])
-                    
+
                     guild = cursor.fetchone()
                     if guild:
                         guild_master = guild[0]
@@ -229,7 +228,7 @@ def noticia_detalhe(request, noticia_id):
 
     return render(request, f"{request.current_theme}/detalhe_noticia.html", {
         "noticia": noticia,
-        "comentarios": comentarios, 
+        "comentarios": comentarios,
 
         })
 
@@ -250,7 +249,7 @@ def get_character_details(character_name):
                 FROM Character
                 WHERE Name = %s
             """, [character_name])
-            
+
             row = cursor.fetchone()
             if row:
                 columns = [col[0] for col in cursor.description]
@@ -282,20 +281,20 @@ def get_ranking(limit=10, search_name=None):
                 FROM Character
                 WHERE 1=1
             """
-            
+
             params = []
-            
+
             if search_name:  # Se um nome foi passado, adiciona a cláusula de busca
                 query += " AND Name LIKE %s"
                 params.append(f"%{search_name}%")
 
             query += " ORDER BY ResetCount DESC"
-            
+
             cursor = conn.cursor()  # Criando o cursor
             cursor.execute(query, params)
             columns = [col[0] for col in cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            
+
             return results
 
         except pyodbc.Error as e:
@@ -407,7 +406,7 @@ def download_view(request):
     ]
 
     return render(request, f"{request.current_theme}/download.html", {
-        'itens': items_list, 
+        'itens': items_list,
     })
 
 
@@ -529,7 +528,7 @@ def mudar_senha(request):
                     if conn:
                         with conn.cursor() as cursor:
                             cursor.execute(f"""
-                                UPDATE MEMB_INFO SET {columnsMEMB_INFO['password']} = %s 
+                                UPDATE MEMB_INFO SET {columnsMEMB_INFO['password']} = %s
                                 WHERE {columnsMEMB_INFO['nick']} = %s
                             """, [nova_senha, request.user.username])
 
@@ -568,7 +567,7 @@ def mudar_id(request):
             if conn:
                 with conn.cursor() as cursor:
                     cursor.execute(f"""
-                        UPDATE MEMB_INFO SET {columnsMEMB_INFO['p_id']} = %s 
+                        UPDATE MEMB_INFO SET {columnsMEMB_INFO['p_id']} = %s
                         WHERE {columnsMEMB_INFO['nick']} = %s
                     """, [novo_id, request.user.username])
 
@@ -629,11 +628,11 @@ def mudar_classe(request):
                         return render(request, f"{request.current_theme}/mudar_classe.html", {"form": form, "personagens": personagens})
 
                 # Número de F's desejados
-                numF = 7552  
+                numF = 7552
                 # Concatena 'F' numF vezes
-                hex_value = 'F' * numF  
+                hex_value = 'F' * numF
                 # Cria a string no formato esperado '0x' + F's
-                inventory_condition = f"0x{hex_value}"  
+                inventory_condition = f"0x{hex_value}"
 
                 # Converte a string hexadecimal para o formato binário necessário para comparação
                 inventory_condition = bytes.fromhex(hex_value)  # Converte 'F' repetido em hex para binário
@@ -641,7 +640,7 @@ def mudar_classe(request):
                 # Verifica se o inventário está vazio (Inventory = 0x) ou se contém apenas o valor esperado
                 with transaction.atomic(), conn.cursor() as cursor:
                     cursor.execute("""
-                        SELECT COUNT(*) 
+                        SELECT COUNT(*)
                         FROM dbo.Character
                         WHERE Name = %s AND (Inventory != 0x AND Inventory != %s);
                     """, [personagem_atual, inventory_condition])

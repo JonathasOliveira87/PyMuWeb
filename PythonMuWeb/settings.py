@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure--@u@^g+0=xg&5)cnywirca@ax8x_fe2&ki8wl*o^k!($v92-=2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['kingroxpz.pythonanywhere.com']
 
 
 # Application definition
@@ -68,33 +68,19 @@ WSGI_APPLICATION = 'PythonMuWeb.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'PyMuWeb',  # Banco de dados para o site
-        'USER': 'sa',
-        'PASSWORD': '123456',
-        'HOST': '127.0.0.1',
-        'PORT': '1433',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        'NAME': 'kingroxpz$PyMuWeb',  # Banco de dados para o site
+        'USER': 'kingroxpz',
+        'PASSWORD': 'pzmuonline25',
+        'HOST': 'kingroxpz.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
         'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'Encrypt': 'yes',
-            'TrustServerCertificate': 'yes',
-        },
-    },
-    'muonline': {
-        'ENGINE': 'mssql',
-        'NAME': 'MuOnlineS6',  # Banco de dados do jogo
-        'USER': 'sa',
-        'PASSWORD': '123456',
-        'HOST': '127.0.0.1',
-        'PORT': '1433',
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'Encrypt': 'yes',
-            'TrustServerCertificate': 'yes',
+            'sql_mode': 'STRICT_TRANS_TABLES',
         },
     }
 }
+
 
 DATABASE_ROUTERS = ['Site.routers.MultiDBRouter']
 

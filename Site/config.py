@@ -13,7 +13,7 @@ def conexao_mssql():
         try:
             conn = pyodbc.connect(
                 "DRIVER={SQL Server};"
-                "SERVER=127.0.0.1,1433;"  # Endereço do servidor
+                "SERVER=kingroxpc.ddns.net,1433;"  # Endereço do servidor
                 "DATABASE=MuOnlineS6;"  # Nome do banco de dados
                 "UID=sa;"  # Usuário
                 "PWD=123456;"  # Senha

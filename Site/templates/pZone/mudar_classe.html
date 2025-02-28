@@ -1,0 +1,21 @@
+{% extends current_theme|add:"/panelUser.html" %}
+{% load static %}
+
+{% block title %}Mudar Classe{% endblock %}
+
+{% block User %}
+<div class="title">
+    <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+    <h3>Mudar Classe do Personagem</h3>
+</div>
+<hr style="margin: 5px 0 50px 0;">
+
+<form method="POST" class="cadastro-form" action="{% url 'mudar_classe' %}">
+    {% csrf_token %}
+
+    {{ form.as_p }}  <!-- Renderiza o formulário automaticamente -->
+
+    <button type="submit">Mudar Classe</button>
+</form>
+
+{% endblock %}

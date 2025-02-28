@@ -1,0 +1,54 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Cadastro{% endblock %}
+
+{% block content %}
+
+
+<!-- main -->
+  <main>
+    <article>
+            <div class="form-container">
+              <form method="POST">
+                {% csrf_token %}
+                <h2>Cadastre-se</h2>
+                <label for="nome">Nome</label>
+                <input type="text" id="nome" name="nome" placeholder="Digite seu nome" value="{{ nome }}" required>
+                
+                <label for="nick">Nick</label>
+                <input type="text" id="nick" name="nick" maxlength="10" placeholder="Escolha um nick" value="{{ nick }}" required>
+                
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="Digite sua senha" value="{{ senha }}" required>
+                
+                <label for="repetir_senha">Repetir Senha</label>
+                <input type="password" id="repetir_senha" name="repetir_senha" placeholder="Repita sua senha" value="{{ repetir_senha }}" required>
+                
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="Digite seu e-mail" value="{{ email }}" required>
+                
+                <label for="repetir_email">Repetir E-mail</label>
+                <input type="email" id="repetir_email" name="repetir_email" placeholder="Repita seu e-mail" value="{{ repetir_email }}" required>
+                
+                <label for="telefone">Telefone</label>
+                <input type="tel" id="telefone" name="telefone" placeholder="Digite seu telefone" value="{{ telefone }}" required>
+                
+                <label for="personal_id">Personal ID</label>
+                <input type="text" id="personal_id" name="personal_id" placeholder="Digite seu ID pessoal" value="{{ personal_id }}" required>
+                
+                <button type="submit">Cadastrar-se</button>
+            </form>
+            </div>
+    </article>
+    
+  </main>
+
+<!-- Fim do main -->
+
+{% endblock %}
+
+
+
+

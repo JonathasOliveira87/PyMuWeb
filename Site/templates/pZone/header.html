@@ -1,0 +1,67 @@
+{% load static %}
+
+{% if messages %}
+  <ul class="messages" id="messages-list">
+      {% for message in messages %}
+          <li class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</li>
+      {% endfor %}
+  </ul>
+{% endif %}
+
+
+<header>
+
+  <div style="background-color: none;">
+    <img id="banner" src="{% static 'pZone/static/img/cover_down_page.jpg' %}" alt="Alternar tema">
+    <p class="banner-text">
+        Bem vindo ao MuDanjo Season 1945!
+    </p>
+    <br>
+  </div>
+
+
+  <div class="MenuNav">
+    <!-- Botão à esquerda -->
+    <button class="corMode" onclick="toggleDarkMode()">
+      <img class="dayNight" src="{% static 'pZone/static/img/day-and-night.png' %}" alt="Alternar tema">
+    </button>
+
+    <!-- Menu no centro -->
+    <nav>
+      <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'cadastro' %}">Cadastrar</a></li>
+        <li><a href="{% url 'download' %}">Downloads</a></li>
+        <li><a href="{% url 'ranking' %}">Rankings</a></li>
+        <li><a href="{% url 'info' %}">Infos</a></li>
+        <li><a href="{% url 'login' %}">Painel do Usuário</a></li>
+
+        <li><a href="{{ site_config.shop }}" target="_blank">Shopping</a></li>        
+        <li><a href="{{ site_config.forum }}" target="_blank">Fórum</a></li>
+      </ul>
+    </nav>
+
+    <img class="seta" src="{% static 'pZone/static/img/seta.png' %}" alt="eventos" onclick="toggleScreen()">
+
+  </div>
+
+  <!-- Tela que será mostrada/ocultada -->
+  <div id="infoScreen" class="info-screen">
+    <button class="close-btn" onclick="toggleScreen()">x</button><br>
+    <h3>Horários de Eventos</h3>
+    <hr><br>
+
+    {% for event in events %}
+    <div id="event_{{ event.id }}">
+        <h3>{{ event.name }}</h3>
+        <p id="countdown_{{ event.id }}">{{ event.display_string }}</p>
+        <input type="hidden" id="remaining_seconds_{{ event.id }}" value="{{ event.remaining_seconds }}">
+        <input type="hidden" id="event_duration_{{ event.id }}" value="{{ event.event_duration }}">
+    </div>
+    {% empty %}
+        <p>Não há eventos programados no momento.</p>
+    {% endfor %}
+
+    
+</header>
+

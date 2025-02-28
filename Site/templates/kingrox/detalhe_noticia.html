@@ -1,0 +1,59 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Notícias{% endblock %}
+
+{% block main %}
+
+
+<article>
+    <div class="title">
+        <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+        <h3>Últimas Notícias</h3>
+    </div>
+    <hr>
+    <section>
+        <div class="title">
+            <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+            <h3>{{ noticia.titulo }}</h3>
+        </div>
+        <hr>
+        <article>
+            <p>{{ noticia.mostrar_conteudo|safe }}</p>
+            <p class="rightInfo">Atualizado em {{ noticia.atualizado_em|date:"d/m/Y H:i" }}</p>
+        </article>
+        <hr>
+    </section>
+    
+    <section>
+        <h3>Comentários</h3>
+        {% for comentario in comentarios %}
+        <article>
+            <p><strong>{{ comentario.nome }}</strong>: {{ comentario.texto }}</p>
+        </article>
+        {% empty %}
+            <p class="rightInfo">Sem comentários ainda.</p>
+        {% endfor %}
+    
+        <hr>
+    </section>
+    
+
+    <section>
+        
+        <form method="post">
+            <h3>Deixe seu comentário</h3>
+            {% csrf_token %}
+
+            <label>Comentário:</label>
+            <textarea name="texto" rows="4" required></textarea><br><br>
+
+            <button type="submit">Enviar</button>
+        </form>
+    </section>
+
+</article>
+
+
+{% endblock %}

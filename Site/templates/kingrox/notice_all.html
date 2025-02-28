@@ -1,0 +1,47 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Todas as Notícias{% endblock %}
+
+{% block main %}
+
+
+
+    <article>
+
+        {% if noticias %}
+        <div class="title">
+            <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+            <h3>Todas as Notícias</h3>
+        </div>
+        <hr>
+    
+            <ul class="NoticeList">
+                {% for noticia in noticias %}
+                    <li>
+                        <a href="{% url 'noticia_detalhe' noticia.id %}" class="notice-link">
+                            <span class="notice-title">
+                                <img style="padding-right: 30px;" src="{% static 'kingrox/static/img/article.png' %}" alt="article">
+                                {{ noticia.titulo }}
+                            </span>
+                            <span class="date">Publicado em {{ noticia.criado_em|date:"d/m/Y H:i" }}</span>
+                        </a>
+                        
+                    </li>
+                    <hr>    
+                {% endfor %}
+            </ul>
+            
+        {% else %}
+            <p style="margin: auto;">Não há notícias disponíveis no momento.</p>
+            <br><br><br>
+        {% endif %}
+
+
+</article>
+
+
+
+
+{% endblock %}

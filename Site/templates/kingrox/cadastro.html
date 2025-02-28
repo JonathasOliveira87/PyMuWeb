@@ -1,0 +1,56 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Cadastro{% endblock %}
+
+{% block main %}
+
+<article>
+  <div class="title">
+    <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+    <h3>Cadastre-se</h3>
+  </div>
+  <hr>
+
+  <div class="form-container">
+    <!-- Formulário -->
+    <form method="POST">
+      {% csrf_token %}
+      
+      {{ form.as_p }}
+
+
+      <div class="terms">
+        <input type="checkbox" name="accept_terms" required> 
+        <label for="accept_terms">
+          <a href="#">Eu aceito os termos e condições</a>.
+        </label>
+      </div>
+
+      <button type="submit">Cadastrar-se</button>
+      <div class="senhaRemember">
+        <p><a href="{% url 'login' %}">Acessar minha conta</a></p>
+    </div>
+    </form>
+
+    <!-- Texto dos Termos ao lado -->
+    <div class="terms-title">
+      <h4>Termos e Condições</h4>
+      <div class="terms-scroll">
+        {% if config and config.term %}
+            <p>{{ config.term }}</p>
+        {% else %}
+            <p>Sem termos cadastrados no momento.</p>
+        {% endif %}
+        
+      </div>
+    </div>
+  </div>
+</article>
+
+{% endblock %}
+
+
+
+

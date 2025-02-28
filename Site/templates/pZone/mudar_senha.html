@@ -1,0 +1,23 @@
+{% extends current_theme|add:"/panelUser.html" %}
+{% load static %}
+
+{% block title %}Mudar Senha{% endblock %}
+
+{% block User %}
+
+<div class="title">
+    <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+    <h3>Mudar Senha</h3>
+</div>
+
+<hr style="margin: 5px 0 50px 0;">
+
+<form method="POST" class="cadastro-form" action="{% url 'mudar_senha' %}">
+    {% csrf_token %}
+
+    {{ form.as_p }}  <!-- Renderiza o formulário -->
+
+    <button type="submit">Mudar Senha</button>
+</form>
+
+{% endblock %}

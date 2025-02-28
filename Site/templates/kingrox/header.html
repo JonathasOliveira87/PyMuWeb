@@ -1,0 +1,40 @@
+{% load static %}
+
+<header>
+  <nav>
+
+    {% if user.is_authenticated %}
+      <a class="logo" href="{% url 'login' %}">PAINEL</a>
+   
+    {% else %}
+      <a class="logo" href="{% url 'login' %}">LOGIN</a>
+    {% endif %}
+
+    <!-- Checkbox para controle do menu -->
+    <input type="checkbox" id="menu-toggle" class="menu-toggle">
+    
+    <label for="menu-toggle" class="mobile-menu">
+      <div class="line1"></div>
+      <div class="line2"></div>
+      <div class="line3"></div>
+    </label>
+
+    <ul class="nav-list">
+      <li><a href="/">Home</a></li>
+      <li><a href="{% url 'cadastro' %}">Cadastrar</a></li>
+      <li><a href="{% url 'download' %}">Downloads</a></li>
+      <li><a href="{% url 'ranking' %}">Rankings</a></li>
+      <li><a href="{% url 'info' %}">Infos</a></li>
+      <li><a href="{{ site_config.shop }}" target="_blank">Shopping</a></li>        
+      <li><a href="{{ site_config.forum }}" target="_blank">Fórum</a></li>
+    </ul>
+  </nav>
+  
+  {% if messages %}
+  <ul class="messages" id="messages-list">
+      {% for message in messages %}
+          <li class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</header>

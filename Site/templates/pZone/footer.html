@@ -1,0 +1,36 @@
+{% load static %}
+
+<!-- Rodapé -->
+<footer>
+
+    <div>
+        <P>Servidor 1: 40 </P>
+        <P>Servidor 2: 84</P>
+        <p>Total Online: {{ total_online }}</p>
+    </div>
+
+    <div>
+        <p>Copyright &copy; 2025.</p>
+        <p>Desenvolvido por Jonathas Oliveira. <a href="https://www.linkedin.com/in/jonathasrobison/" target="_blank">  <img src="{% static 'pZone/static/img/linkedin.pn' %}g" alt="linkedin"></a></p>
+        <p>Linguagem de programação Python. <a href="https://docs.python.org/3/" target="_blank" rel="noopener noreferrer"> <img src="{% static 'pZone/static/img//python.png' %}" alt="python"></a> </p>
+    </div>
+
+
+    
+    <form style="width: auto; margin: 0; padding: 0;" method="post" action="{% url 'change_theme' theme_name='tema' %}">
+        {% csrf_token %}
+        <p>Tema atual: {{ current_theme }}</p>
+        <label for="theme">Escolha o tema:</label>
+        <select name="theme" id="theme" onchange="this.form.submit()">
+            {% for tema in temas %}
+                <option value="{{ tema }}" {% if tema == current_theme %}selected{% endif %}>
+                    {{ tema }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+    
+</footer>
+<!-- Fim do rodapé -->
+
+

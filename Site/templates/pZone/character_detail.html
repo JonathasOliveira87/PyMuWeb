@@ -1,0 +1,23 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% block title %}Detalhes de {{ character.Name }}{% endblock %}
+
+{% block content %}
+<main>
+    <article>
+        <h2>Detalhes do Personagem - {{ character.Name }}</h2>
+        <table>
+            <tr><th>Nome:</th><td>{{ character.Name }}</td></tr>
+            <tr><th>Resets:</th><td>{{ character.ResetCount }}</td></tr>
+            <tr><th>Level</th><td>{{ character.cLevel }}</td></tr>
+            <tr><th>Classe:</th><td>{{ character.Class }}</td></tr>
+            <tr><th>Força:</th><td>{{ character.Strength }}</td></tr>
+            <tr><th>Agilidade:</th><td>{{ character.Dexterity }}</td></tr>
+            <tr><th>Vitalidade:</th><td>{{ character.Vitality }}</td></tr>
+            <tr><th>Energia:</th><td>{{ character.Energy }}</td></tr>
+        </table>
+
+        <a href="{% url 'ranking' %}">Voltar ao Ranking</a>
+    </article>
+</main>
+{% endblock %}

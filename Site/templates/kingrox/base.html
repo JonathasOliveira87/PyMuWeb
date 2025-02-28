@@ -1,0 +1,45 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <link rel="shortcut icon" href="{% static 'kingrox/static/img/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'kingrox/static/css/style.css' %}">
+</head>
+    <body>
+        <video autoplay loop muted class="video-background">
+            <source src="{% static 'kingrox/static/video/bg2.mp4' %}" type="video/mp4">
+            Seu navegador não suporta a tag de vídeo.
+        </video>
+
+        {% include "kingrox/header.html" %}
+
+        <div class="container">
+            <aside>
+                {% block left %}
+                    {% include "kingrox/left.html" %}
+                {% endblock %}
+            </aside>
+
+            <main>
+                {% block main %}
+
+              
+              
+                {% endblock %}
+            </main>
+        </div>
+    
+        {% include 'kingrox/footer.html' %}
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script src="{% static 'kingrox/static/js/script.js' %}"></script>
+    </body>
+    
+</html>

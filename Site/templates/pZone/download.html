@@ -1,0 +1,75 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Download{% endblock %}
+
+{% block content %}
+
+
+<!-- main -->
+<main>
+    <article>
+        <aside>
+
+            <div><hr>
+                {% if itens %}
+                    {% for item in itens %}
+
+                        <div class="download">
+                            <p>{{ item.title }}</p><br>
+                            <a href="{{ item.link }}" download target="_blank">
+                                <button title="Link atualizado em: {{ item.created|date:'d/m/Y'}}">Baixar</button>
+                            </a> 
+                        </div>
+                    <hr>
+                    {% endfor %}
+                {% else %}
+                <p>Nenhum link disponível</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <table>
+                    <tr>
+                        <th>Componentes</th>
+                        <th>Requisitos Mínimos</th>
+                    </tr>
+
+                    <tr>
+                        <td>OS</td>
+                        <td>Windows 7 ou superior</td>
+                    </tr>
+                    <tr>
+                        <td>CPU</td>
+                        <td>Atom 1.6Ghz / Core 2 Ghz</td>
+                    </tr>
+                    <tr>
+                        <td>RAM</td>
+                        <td>1GB / 2GB</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>GPU</td>
+                        <td>Intel IGP / Geforce 8600</td>
+                    </tr>
+                    <tr>
+                        <td>DirectX</td>
+                        <td>Direct X Versão integrada</td>
+                    </tr>
+                    <tr>
+                        <td>HDD/SSD</td>
+                        <td>2GB ou superior</td>
+                    </tr>
+                </table>
+            </div>
+
+        </aside>
+
+    </article>
+</main>
+<!-- Fim do main -->
+
+
+{% endblock %}
+

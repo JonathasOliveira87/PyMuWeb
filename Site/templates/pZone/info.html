@@ -1,0 +1,95 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Informações do Servidor{% endblock %}
+
+{% block content %}
+
+<!-- main -->
+<main>
+    <article>
+
+        <aside>
+            {% csrf_token %}
+            <ul class="commandList" style="list-style: none; padding: 0;">
+                <div class="title">
+                    <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                    <h3>Configurações do Servidor</h3>
+                </div>
+                <hr style="margin: 5px 0 10px 0; width: 500px;">
+                {% if config %}
+                    <li><span class="command">Nome:</span> - {{ config.name_server }}</li>
+                    <li><span class="command">Versão:</span> - {{ config.version_server }}</li>
+                    <li><span class="command">Reset:</span> - {{ config.reset_type }}</li>
+                {% else %}
+                    <li>Nenhuma configuração disponível.</li>
+                {% endif %}
+            </ul>
+        </aside>
+        
+
+        <aside>
+            {% csrf_token %}
+            <ul class="commandList" style="list-style: none; padding: 0;">
+                <div class="title">
+                    <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                    <h3>Comandos do Servidor</h3>
+                </div>
+                <hr style="margin: 5px 0 10px 0; width: 500px;">
+                {% for comando in comandos %}
+                    <li><span class="command">{{ comando.command }}</span> - {{ comando.description }}</li>
+                {% empty %}
+                    <li>Nenhum comando disponível.</li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+
+        {% if vips %}
+        <aside>
+
+            {% csrf_token %}
+            <ul class="commandList" style="list-style: none; padding: 0;">
+                <div class="title">
+                    <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                    <h3>vantagens Vip</h3>
+                </div>
+                <hr style="margin: 5px 0 10px 0; width: 100%;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            {% for vip in vips %}
+                                <th>{{ vip.nome }}</th>  <!-- Títulos das colunas para cada VIP -->
+                            {% endfor %}
+                        </tr>
+                    </thead>
+            
+                    <tbody>
+                        {% for descricao in descricoes %}
+                            <tr>
+                                <th style="background-color: #3A4865;">{{ descricao.description }}</th>  <!-- Descrição de cada linha -->
+                                {% for key, vantagens in vantagens_por_descricao.items %}
+                                    {% if key == descricao.id %}
+                                        {% for vantagem in vantagens %}
+                                            <td>{{ vantagem.value }}</td> <!-- Exibe o valor da vantagem -->
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </ul>
+        </aside>
+        
+        {% endif %}
+
+
+
+    </article>
+</main>
+<!-- Fim do main -->
+
+{% endblock %}

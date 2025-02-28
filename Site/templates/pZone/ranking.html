@@ -1,0 +1,85 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Ranking{% endblock %}
+
+{% block content %}
+
+
+
+<!-- main -->
+<main>
+    <article>
+        <div class="ranking-filter">
+            <!-- Seleção de quantidade de jogadores no ranking -->
+            <label for="ranking-limit">Busca por Quantidade:</label>
+            <select id="ranking-limit" onchange="updateRanking()">
+                <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>Top 10</option>
+                <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>Top 20</option>
+                <option value="50" {% if request.GET.limit == "50" %}selected{% endif %}>Top 50</option>
+                <option value="100" {% if request.GET.limit == "100" %}selected{% endif %}>Top 100</option>
+            </select>
+
+            <strong>--</strong>
+            <!-- Campo de busca por nome -->
+            <label for="search-name">Digite o nome do personagem:</label>
+            <input type="text" id="search-name" placeholder="Nome do jogador" onkeyup="searchRanking()">
+            <!-- Mensagem de "Personagem não encontrado" -->
+            <p id="no-results" style="display: none; color: red; font-weight: bold;">Personagem não encontrado</p>
+        </div><br>
+
+        <table class="ranking-table" id="ranking-table">
+            <tr>
+                <th>Nome</th>
+                <th>Resets</th>
+                <th>Nível</th>
+                <th>Classe</th>
+            </tr>
+            {% for player in ranking %}
+            <tr class="ranking-row">
+              <td><a href="{% url 'character_detail' player.Name %}" class="player-link">{{ player.Name }}</a></td>
+              <td>{{ player.ResetCount }}</td>
+              <td>{{ player.cLevel }}</td>
+              <td>{{ player.Class }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </article>
+</main>
+<!-- Fim do main -->
+
+<script>
+    function updateRanking() {
+        let limit = document.getElementById("ranking-limit").value;
+        window.location.href = "?limit=" + limit; // Atualiza a URL com o parâmetro de limite
+    }
+
+  function searchRanking() {
+      let input = document.getElementById("search-name").value.toLowerCase();
+      let rows = document.querySelectorAll(".ranking-row");
+      let found = false;
+
+      rows.forEach(row => {
+          let name = row.cells[0].innerText.toLowerCase();
+          if (name.includes(input)) {
+              row.style.display = "";
+              found = true;
+          } else {
+              row.style.display = "none";
+          }
+      });
+
+      // Exibir ou ocultar a mensagem de "Personagem não encontrado"
+      let noResultsMessage = document.getElementById("no-results");
+      if (found) {
+          noResultsMessage.style.display = "none";
+      } else {
+          noResultsMessage.style.display = "inline-block";
+          noResultsMessage.style.marginLeft = "20px";
+      }
+  }
+</script>
+
+
+{% endblock %}

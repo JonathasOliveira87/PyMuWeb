@@ -1,0 +1,85 @@
+{% extends current_theme|add:"/base.html" %}
+{% load static %}
+
+{% block title %}Painel de Usuário{% endblock %}
+
+{% block content %}
+
+
+<main>
+    <article>
+        <div class="form-container">
+            {% if user.is_authenticated %}
+                <div class="title">
+                    <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                    <h3>Bem-vindo, {{ user.username }}!</h3>
+                    <a class="sair" href="?logout=true">Sair</a>
+                </div><hr>
+
+                <ol>
+                    <li><a href="{% url 'login' %}"> Informações da Conta</a></li>
+                    <li><a href="{% url 'mudar_senha' %}?page=mudar_senha">Mudar Senha</a></li>
+                    <li><a href="{% url 'mudar_id' %}?page=mudar_id">Mudar Personal ID</a></li>
+                    <li><a href="{% url 'mudar_nome' %}?page=mudar_nome">Mudar Nome</a></li>
+                    <li><a href="{% url 'mudar_classe' %}?page=mudar_classe">Mudar Classe</a></li>
+
+                </ol>
+
+                {% block User %}
+
+                <aside>
+                    <ul class="commandList" style="list-style: none; padding: 0;">
+                        <div class="title">
+                            <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                            <h3>Informações da conta</h3>
+                        </div>
+                        <hr style="margin: 5px 0 10px 0; width: 500px;">
+                        <li><span class="command">Nome:</span>- {{ nome }}</li>
+                        <li><span class="command">Email:</span>- {{ email }}</li>
+                        <li><span class="command">Telefone:</span>- {{ telefone }}</li>
+                    </ul>
+                </aside>
+
+                <aside>
+                    <ul class="commandList" style="list-style: none; padding: 0;">
+                        <div class="title">
+                            <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="usuário sem foto">
+                            <h3>Personagens</h3>
+                        </div>
+                        <hr style="margin: 5px 0 10px 0; width: 500px;">
+                        {% for personagem in personagens %}
+                            <li><span class="command">{{ personagem }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </aside>
+
+                {% endblock %}
+
+            {% else %}
+                <div class="title">
+                    <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+                    <h3>Logar-se</h3>
+                </div>
+                <hr style="margin: 5px 0 60px 0;">
+        
+                <form method="POST" >
+                    {% csrf_token %}
+        
+                    {{ form.as_p }}
+                    
+                    <button type="submit">Login</button>
+                    
+                    <div class="senhaRemember">
+                        <p><a href="{% url 'cadastro' %}">Esqueci minha senha</a></p> |
+                        <p><a href="{% url 'cadastro' %}">Cadastrar</a></p>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+    </article>
+</main>
+
+{% endblock %}
+
+

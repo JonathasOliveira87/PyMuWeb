@@ -1,0 +1,91 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Informações do Servidor{% endblock %}
+
+{% block main %}
+
+
+<article>
+    <div class="title">
+        <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+        <h3>Configurações do Servidor</h3>
+    </div>
+    <hr style="margin: 5px 0 10px 0;">
+ 
+    {% csrf_token %}
+    <ul class="commandList">
+
+        {% if config %}
+            <li><span class="command">Nome:</span> - {{ config.name_server }}</li>
+            <li><span class="command">Versão:</span> - {{ config.version_server }}</li>
+            <li><span class="command">Reset:</span> - {{ config.reset_type }}</li>
+        {% else %}
+            <li class="command">Nenhuma configuração disponível.</li>
+        {% endif %}
+    </ul>
+    
+
+    <div class="title">
+        <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+        <h3>Comandos do Servidor</h3>
+    </div>
+    <hr style="margin: 5px 0 10px 0;">
+
+    {% csrf_token %}
+    <ul class="commandList">
+
+        {% for comando in comandos %}
+            <li><span class="command">{{ comando.command }}</span> - {{ comando.description }}</li>
+        {% empty %}
+            <li class="command">Nenhum comando disponível.</li>
+        {% endfor %}
+    </ul>
+  
+
+    {% if vips %}
+    <div class="title">
+        <img src="{% static 'kingrox/static/img/Chaos.png' %}" alt="chaos">
+        <h3>vantagens Vip</h3>
+    </div>
+    <hr style="margin: 5px 0 10px 0;">
+    {% csrf_token %}
+    <ul class="commandList">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    {% for vip in vips %}
+                        <th>{{ vip.nome }}</th>  <!-- Títulos das colunas para cada VIP -->
+                    {% endfor %}
+                </tr>
+            </thead>
+    
+            <tbody>
+                {% for descricao in descricoes %}
+                    <tr>
+                        <th style="background-color: #445372;">{{ descricao.description }}</th>  <!-- Descrição de cada linha -->
+                        {% for key, vantagens in vantagens_por_descricao.items %}
+                            {% if key == descricao.id %}
+                                {% for vantagem in vantagens %}
+                                    <td>{{ vantagem.value }}</td> <!-- Exibe o valor da vantagem -->
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </ul>
+   
+    
+    {% endif %}
+
+
+
+</article>
+
+
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Notícias{% endblock %}
+
+{% block content %}
+
+
+
+<!-- main -->
+<main>
+    <article>
+        <section>
+            <h1>{{ noticia.titulo }}</h1>
+            <p>{{ noticia.mostrar_conteudo|safe }}</p>
+            <p class="rightInfo">Atualizado em {{ noticia.atualizado_em|date:"d/m/Y H:i" }}</p>
+        
+            <hr>
+        </section>
+        
+        <section>
+            <h3>Comentários</h3>
+            {% for comentario in comentarios %}
+                <p><strong>{{ comentario.nome }}</strong>: {{ comentario.texto }}</p>
+            {% empty %}
+                <p class="rightInfo">Sem comentários ainda.</p>
+            {% endfor %}
+        
+            <hr>
+        </section>
+        
+
+        <section>
+            
+            <form method="post">
+                <h3>Deixe seu comentário</h3>
+                {% csrf_token %}
+
+                <label>Comentário:</label>
+                <textarea name="texto" rows="4" required></textarea><br><br>
+
+                <button type="submit">Enviar</button>
+            </form>
+        </section>
+
+    </article>
+</main>
+<!-- Fim do main -->
+
+{% endblock %}

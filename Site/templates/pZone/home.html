@@ -1,0 +1,133 @@
+{% extends current_theme|add:"/base.html" %}
+
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+
+<!-- main -->
+<main>
+    <article>
+
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                {% if slides %}
+                    {% for slide in slides %}
+                        <div class="swiper-slide">
+                            <img src="{{ slide.get_image }}" alt="{{ slide.title }}">
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="margin: auto;">Não há slides disponíveis no momento.</p>
+                {% endif %}
+            </div>
+            <!-- Botões de navegação -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <!-- Paginação -->
+            <div class="swiper-pagination"></div>
+        </div><hr>
+
+
+        {% if noticias %}
+        <div class="title">
+            <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="chaos">
+            <h3>Últimas Notícias</h3>
+        </div>
+        <hr>
+    
+            <ul class="NoticeList">
+                {% for noticia in noticias %}
+                    <li>
+                        <a href="{% url 'noticia_detalhe' noticia.id %}" class="notice-link">
+                            <span class="notice-title">
+                                <img style="padding-right: 30px;" src="{% static 'pZone/static/img/article.png' %}" alt="article">
+                                {{ noticia.titulo }}
+                            </span>
+                            <span class="date">Publicado em {{ noticia.criado_em|date:"d/m/Y H:i" }}</span>
+                        </a>
+                        
+                    </li>
+                    <hr>    
+                {% endfor %}
+            </ul>
+            <aside><h4><a href="{% url 'notice_all' %}">Ver Todas as notícias</a><hr></h4></aside>
+            
+        {% else %}
+            <p style="margin: auto;">Não há notícias disponíveis no momento.</p>
+            <br><br><br>
+        {% endif %}
+    
+    
+
+        <div class="title">
+            <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="chaos">
+            <h3>Top Ranking</h3>
+        </div><hr>
+        
+        <aside>
+            {% for category, player in top_players.items %}
+                <div>
+                    {% if player %}
+                        <div style="justify-items: center;">  
+                            <p>{{ category }}</p>  <!-- Exibe o nome correto do ranking -->
+                            {% if category == "Top Guild" %}
+                                <!-- Exibe a imagem da guilda em base64 -->
+                                {% if logo_base64 %}
+                                    <img class="top_players" src="data:image/png;base64,{{ logo_base64 }}" alt="Logo da Guilda Top" />
+                                {% else %}
+                                    <p>Imagem não disponível</p>
+                                {% endif %}
+                                    <p><a href="{% url 'character_detail' player.G_Name %}" class="player-link">{{ player.G_Name }}</a></p>  <!-- Exibe o nome da guild -->
+                            {% else %}
+                                <img class="top_players" src="{% static 'pZone/static/img/no-avatar.png' %}" alt="usuário sem foto">
+                                <p><a href="{% url 'character_detail' player.Name %}" class="player-link">{{ player.Name }}</a></p>  <!-- Exibe o nome do jogador -->
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div>Nenhum jogador foi criado!</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </aside>
+
+
+        {% if show_castle_siege %}
+            <div class="title">
+                <img src="{% static 'pZone/static/img/Chaos.png' %}" alt="chaos">
+                <h3>Castle Siege</h3>
+            </div><hr>
+        
+            <article>
+                {% if event_message %}
+                    <aside class="siege-container">
+                        <p>{{ event_message }}</p>
+                    </aside>
+                {% else %}
+                    <aside class="siege-container">
+
+                        <div class="overlay-text">
+                                {% if castle_siege %}
+                                    <p class="donoSiege">{{ castle_siege.OWNER_GUILD }}</p>
+                                    <p class="guildSiege">{{ guild_master }}</p>
+                                    <p class="dateSiege">{{ castle_siege.StartSiege }}</p>
+                                {% else %}
+                                    <p class="donoSiege">Sem Dono</p>
+                                    <p class="guildSiege">Sem Dono</p>
+                                    <p class="dateSiege">-</p>
+                                {% endif %}
+                        </div>
+                    <img src="{% static 'pZone/static/img/siege.png' %}" alt="Castle Siege" />
+                    </aside>
+                {% endif %}
+            </article>
+        {% endif %}
+        
+</main>
+<!-- Fim do main -->
+
+
+
+{% endblock %}

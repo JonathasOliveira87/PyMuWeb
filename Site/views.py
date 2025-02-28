@@ -12,6 +12,7 @@ from django.db import connection, transaction
 from .config import *
 
 
+
 # Funções para gerar a logo da guilda em base64 e retornar a imagem
 def get_color(hex_value):
     HEX_TO_COLOR = {
@@ -67,8 +68,11 @@ def get_top_ranking():
     }
     results = {}
 
-    try:
-        with connections['muonline'].cursor() as cursor:  # Especifica o banco 'muonline'
+    conn = conexao_mssql()  # Conectar ao banco SQL Server
+    if conn:
+        try:
+            cursor = conn.cursor()  # Criando o cursor
+
             for category, query in queries.items():
                 cursor.execute(query)
                 row = cursor.fetchone()
@@ -77,9 +81,12 @@ def get_top_ranking():
                     results[category] = dict(zip(columns, row))
                 else:
                     results[category] = None
-    except Exception as e:
-        print(f"Ocorreu um erro ao executar as consultas: {e}")
-        return None
+
+        except pyodbc.Error as e:
+            print(f"Ocorreu um erro ao executar as consultas: {e}")
+            return None
+        finally:
+            conn.close()  # Fechar a conexão
 
     return results
 
@@ -109,8 +116,15 @@ def get_top_guild_logo():
     return None
 
 
+# Função para buscar informações sobre o Castle Siege
 def get_castle_siege_info():
-    with connections['muonline'].cursor() as cursor:
+    conn = conexao_mssql()  # Obter a conexão global
+    if not conn:
+        return None  # Retorna None se a conexão não for bem-sucedida
+
+    try:
+        cursor = conn.cursor()  # Criar o cursor para executar a consulta
+
         # Consulta para verificar se a tabela MuCastle_DATA existe
         cursor.execute("""
             SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES 
@@ -137,6 +151,14 @@ def get_castle_siege_info():
         
         return None  # Retorna None se não encontrar nenhum dado
 
+    except pyodbc.Error as e:
+        print(f"Ocorreu um erro ao executar a consulta: {e}")
+        return None
+
+    finally:
+        if conn:
+            conn.close()  # Fechar a conexão
+
 
 def home(request):
     slides = Slide.objects.all()
@@ -155,16 +177,24 @@ def home(request):
 
         if castle_siege_info:
             # Se encontrou o Castle Siege, busca a guilda relacionada
-            with connections['muonline'].cursor() as cursor:
-                cursor.execute("""
-                    SELECT G_Master FROM Guild WHERE G_Name = %s
-                """, [castle_siege_info["OWNER_GUILD"]])
-                
-                guild = cursor.fetchone()
-                if guild:
-                    guild_master = guild[0]
-                else:
-                    guild_master = "Guilda não encontrada"
+            conn = conexao_mssql()  # Obtendo a conexão global
+            if conn:
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT G_Master FROM Guild WHERE G_Name = ?
+                    """, [castle_siege_info["OWNER_GUILD"]])
+                    
+                    guild = cursor.fetchone()
+                    if guild:
+                        guild_master = guild[0]
+                    else:
+                        guild_master = "Guilda não encontrada"
+                except pyodbc.Error as e:
+                    print(f"Ocorreu um erro ao obter dados da Guilda: {e}")
+                    guild_master = "Erro ao consultar a guilda"
+                finally:
+                    conn.close()  # Fechar a conexão após o uso
         else:
             event_message = "O evento Castle Siege não existe nesta versão."
 
@@ -211,18 +241,28 @@ def notice_all(request):
 
 
 def get_character_details(character_name):
-    with connections['muonline'].cursor() as cursor:  # Especifica o banco 'muonline'
-        cursor.execute(f"""
-            SELECT Name, {columnsCharacter['reset']}, cLevel, Class, Strength, Dexterity, Vitality, Energy
-            FROM Character
-            WHERE Name = %s
-        """, [character_name])
-        
-        row = cursor.fetchone()
-        if row:
-            columns = [col[0] for col in cursor.description]
-            return dict(zip(columns, row))
-        return None
+    conn = conexao_mssql()  # Conectar ao banco SQL Server
+    if conn:
+        try:
+            cursor = conn.cursor()  # Criando o cursor
+            cursor.execute(f"""
+                SELECT Name, {columnsCharacter['reset']}, cLevel, Class, Strength, Dexterity, Vitality, Energy
+                FROM Character
+                WHERE Name = %s
+            """, [character_name])
+            
+            row = cursor.fetchone()
+            if row:
+                columns = [col[0] for col in cursor.description]
+                return dict(zip(columns, row))
+            return None
+
+        except pyodbc.Error as e:
+            print(f"Ocorreu um erro ao executar a consulta: {e}")
+            return None
+        finally:
+            conn.close()  # Fechar a conexão
+    return None
 
 
 def character_detail(request, character_name):
@@ -234,26 +274,36 @@ def character_detail(request, character_name):
 
 
 def get_ranking(limit=10, search_name=None):
-    query = f"""
-        SELECT TOP {limit} Name, {columnsCharacter['reset']}, cLevel, Class
-        FROM Character
-        WHERE 1=1
-    """
-    
-    params = []
-    
-    if search_name:  # Se um nome foi passado, adiciona a cláusula de busca
-        query += " AND Name LIKE %s"
-        params.append(f"%{search_name}%")
+    conn = conexao_mssql()  # Conectar ao banco SQL Server
+    if conn:
+        try:
+            query = f"""
+                SELECT TOP {limit} Name, {columnsCharacter['reset']}, cLevel, Class
+                FROM Character
+                WHERE 1=1
+            """
+            
+            params = []
+            
+            if search_name:  # Se um nome foi passado, adiciona a cláusula de busca
+                query += " AND Name LIKE %s"
+                params.append(f"%{search_name}%")
 
-    query += " ORDER BY ResetCount DESC"
-    
-    with connections['muonline'].cursor() as cursor:
-        cursor.execute(query, params)
-        columns = [col[0] for col in cursor.description]
-        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    
-    return results
+            query += " ORDER BY ResetCount DESC"
+            
+            cursor = conn.cursor()  # Criando o cursor
+            cursor.execute(query, params)
+            columns = [col[0] for col in cursor.description]
+            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+            return results
+
+        except pyodbc.Error as e:
+            print(f"Ocorreu um erro ao executar a consulta: {e}")
+            return None
+        finally:
+            conn.close()  # Fechar a conexão
+    return None
 
 
 def ranking_view(request):
@@ -268,7 +318,6 @@ def cadastro_view(request):
     config = SiteConfig.objects.first()
     # Verifique se o site_config existe antes de passá-lo para o template
     if not config:
-        # Se não existir configuração, você pode criar uma nova ou tratar o erro
         config = None
 
     if request.method == "POST":
@@ -283,13 +332,16 @@ def cadastro_view(request):
             personal_id = form.cleaned_data["personal_id"]
             telefone = form.cleaned_data["telefone"]
 
-            # ✅ Cadastrar no banco MuOnline via Query
+            # ✅ Cadastrar no banco MuOnline via Query com conexão global
             try:
-                with connections['muonline'].cursor() as cursor:
-                    cursor.execute(f"""
-                        INSERT INTO MEMB_INFO ({columnsMEMB_INFO['name']}, {columnsMEMB_INFO['nick']}, {columnsMEMB_INFO['password']}, {columnsMEMB_INFO['email']}, {columnsMEMB_INFO['p_id']}, {columnsMEMB_INFO['tel']}, bloc_code, ctl1_code)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """, [nome, nick, senha, email, personal_id, telefone, '0', '0'])
+                conn = conexao_mssql()  # Usar a conexão global
+                if conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(f"""
+                            INSERT INTO MEMB_INFO ({columnsMEMB_INFO['name']}, {columnsMEMB_INFO['nick']}, {columnsMEMB_INFO['password']}, {columnsMEMB_INFO['email']}, {columnsMEMB_INFO['p_id']}, {columnsMEMB_INFO['tel']}, bloc_code, ctl1_code)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        """, [nome, nick, senha, email, personal_id, telefone, '0', '0'])
+                        conn.commit()  # Comitar as mudanças
             except Exception as e:
                 messages.error(request, f"Erro ao cadastrar no banco do jogo: {str(e)}")
                 return render(request, f"{request.current_theme}/cadastro.html", {"form": form, 'config': config})
@@ -304,7 +356,7 @@ def cadastro_view(request):
                 return render(request, f"{request.current_theme}/cadastro.html", {"form": form, 'config': config})
 
             messages.success(request, "Cadastro realizado com sucesso!")
-            return redirect("/") 
+            return redirect("/")
 
         else:
             messages.error(request, "Corrija os erros no formulário.")
@@ -369,7 +421,6 @@ def realizar_logout(request):
         return redirect('login')  # Redireciona para a página de login (ou outra página desejada)
     return None  # Caso contrário, não faz nada
 
-
 def login_view(request):
     logout_redirect = realizar_logout(request)  # Chama a função de logout
     if logout_redirect:
@@ -378,103 +429,90 @@ def login_view(request):
     # Inicializa user_data com valores padrão
     user_data = {"nome": "Usuário não encontrado", "email": "N/A", "telefone": "N/A"}
     personagens = []
-    
-    # Verifica se o usuário já está autenticado
+
     if request.user.is_authenticated:
         try:
-            # Obtém as informações do usuário do banco de dados usando uma query SQL
-            with connections['muonline'].cursor() as cursor:
-                cursor.execute(f"""
-                    SELECT {columnsMEMB_INFO['name']}, {columnsMEMB_INFO['email']}, {columnsMEMB_INFO['tel']}
-                    FROM MEMB_INFO
-                    WHERE memb___id = %s
-                """, [request.user.username])
-                result = cursor.fetchone()
+            conn = conexao_mssql()  # Usar a conexão global
+            if conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(f"""
+                        SELECT {columnsMEMB_INFO['name']}, {columnsMEMB_INFO['email']}, {columnsMEMB_INFO['tel']}
+                        FROM MEMB_INFO
+                        WHERE memb___id = %s
+                    """, [request.user.username])
+                    result = cursor.fetchone()
 
-                if result:
-                    user_data = {
-                        "nome": result[0],
-                        "email": result[1],
-                        "telefone": result[2],
-                    }
-                else:
-                    user_data = {"nome": "Usuário não encontrado", "email": "N/A", "telefone": "N/A"}
+                    if result:
+                        user_data = {
+                            "nome": result[0],
+                            "email": result[1],
+                            "telefone": result[2],
+                        }
 
-            # Buscando personagens associados a esse usuário
-            with connections['muonline'].cursor() as cursor:
-                cursor.execute("""
-                    SELECT Name
-                    FROM Character
-                    WHERE AccountID = %s
-                """, [request.user.username])
-                personagens = cursor.fetchall()
+                # Buscando personagens associados a esse usuário
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT Name
+                        FROM Character
+                        WHERE AccountID = %s
+                    """, [request.user.username])
+                    personagens = cursor.fetchall()
 
         except Exception as e:
             messages.error(request, f"Erro ao buscar dados no banco: {str(e)}")
 
     if request.method == 'POST':  # Processo de login via POST
         form = LoginForm(request.POST)
-        
+
         if form.is_valid():
             memb___id = form.cleaned_data['memb___id']
             memb__pwd = form.cleaned_data['memb__pwd']
 
             try:
-                # Tenta obter o usuário do banco de dados usando SQL
-                with connections['muonline'].cursor() as cursor:
-                    cursor.execute("""
-                        SELECT memb__pwd
-                        FROM MEMB_INFO
-                        WHERE memb___id = %s
-                    """, [memb___id])
-                    result = cursor.fetchone()
+                conn = conexao_mssql()  # Usar a conexão global
+                if conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT memb__pwd
+                            FROM MEMB_INFO
+                            WHERE memb___id = %s
+                        """, [memb___id])
+                        result = cursor.fetchone()
 
-                if result:
-                    # Verifica se a senha está correta
-                    if result[0] == memb__pwd:
-                        # Cria ou pega o usuário no Django
-                        django_user, created = User.objects.get_or_create(username=memb___id)
-                        django_user.set_password(memb__pwd)  # Garante que a senha esteja no formato correto
-                        django_user.save()
+                    if result:
+                        if result[0] == memb__pwd:
+                            django_user, created = User.objects.get_or_create(username=memb___id)
+                            django_user.set_password(memb__pwd)
+                            django_user.save()
 
-                        # Loga o usuário
-                        login(request, django_user)
-                        # Exemplo de log para verificar a correspondência
-                        print("Username no Django:", request.user.username)
-                        print("ID no banco MuOnline:", request.user.username)
-                        messages.success(request, 'Usuário logado com sucesso!')
-
-                        # Após o login, redireciona para a página do painel
-                        return redirect('login')  # Ajuste o nome da URL de destino aqui
+                            login(request, django_user)
+                            messages.success(request, 'Usuário logado com sucesso!')
+                            return redirect('login')  # Redirecionar após sucesso
+                        else:
+                            messages.error(request, 'Senha incorreta')
                     else:
-                        messages.error(request, 'Senha incorreta')
-                else:
-                    messages.error(request, 'Usuário não encontrado')
-                    
+                        messages.error(request, 'Usuário não encontrado')
 
             except Exception as e:
                 messages.error(request, f"Erro ao buscar dados do usuário: {str(e)}")
 
     else:
-        form = LoginForm()  # Cria uma instância do formulário vazio
+        form = LoginForm()
 
-    # Renderiza a página com o formulário e as informações do usuário
     return render(request, f"{request.current_theme}/panelUser.html", {
         'form': form,
         **user_data,
-        'personagens': [personagem[0] for personagem in personagens]  # Extraímos o nome dos personagens
+        'personagens': [personagem[0] for personagem in personagens]
     })
-
-
 
 def mudar_senha(request):
     logout_redirect = realizar_logout(request)  # Chama a função de logout
     if logout_redirect:
         return logout_redirect  # Redireciona caso o logout tenha sido executado
-    if request.method == 'POST':
 
+    if request.method == 'POST':
         form = MudarSenhaForm(request.POST)
-        
+
         if form.is_valid():
             senha_atual = form.cleaned_data['senha_atual']
             nova_senha = form.cleaned_data['nova_senha']
@@ -486,29 +524,33 @@ def mudar_senha(request):
                     django_user.set_password(nova_senha)
                     django_user.save()
 
-                    # Usando a conexão 'muonline' para atualizar a senha no banco de dados
-                    with connections['muonline'].cursor() as cursor:
-                        cursor.execute(f"UPDATE MEMB_INFO SET {columnsMEMB_INFO['password']} = %s WHERE {columnsMEMB_INFO['nick']} = %s", [nova_senha, request.user.username])
-                    
+                    # Atualiza a senha no banco MuOnline
+                    conn = conexao_mssql()  # Usar a conexão global
+                    if conn:
+                        with conn.cursor() as cursor:
+                            cursor.execute(f"""
+                                UPDATE MEMB_INFO SET {columnsMEMB_INFO['password']} = %s 
+                                WHERE {columnsMEMB_INFO['nick']} = %s
+                            """, [nova_senha, request.user.username])
+
                     # Reautenticar o usuário após a alteração da senha
                     login(request, django_user)
 
                     messages.success(request, 'Senha alterada com sucesso!')
-                    return redirect('mudar_senha')  # Redireciona para a página principal após sucesso
+                    return redirect('mudar_senha')
                 else:
                     messages.error(request, 'Senha atual incorreta.')
             except User.DoesNotExist:
                 messages.error(request, 'Usuário não encontrado.')
             except Exception as e:
-                # Captura qualquer outro erro inesperado
                 messages.error(request, f'Ocorreu um erro: {str(e)}')
         else:
             messages.error(request, 'O formulário contém erros.')
+
     else:
         form = MudarSenhaForm()
 
     return render(request, f"{request.current_theme}/mudar_senha.html", {'form': form})
-
 
 def mudar_id(request):
     logout_redirect = realizar_logout(request)  # Chama a função de logout
@@ -522,11 +564,16 @@ def mudar_id(request):
             novo_id = form.cleaned_data['novo_id']
 
             # Usando a conexão 'muonline' para atualizar o ID no banco de dados
-            with connections['muonline'].cursor() as cursor:
-                cursor.execute(f"UPDATE MEMB_INFO SET {columnsMEMB_INFO['p_id']} = %s WHERE {columnsMEMB_INFO['nick']} = %s", [novo_id, request.user.username])
+            conn = conexao_mssql()  # Usar a conexão global
+            if conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(f"""
+                        UPDATE MEMB_INFO SET {columnsMEMB_INFO['p_id']} = %s 
+                        WHERE {columnsMEMB_INFO['nick']} = %s
+                    """, [novo_id, request.user.username])
 
             messages.success(request, 'ID alterado com sucesso!')
-            return redirect('mudar_id')  # Redireciona para a página principal após sucesso
+            return redirect('mudar_id')
         else:
             messages.error(request, 'Ocorreu um erro. Verifique a senha.')
 
@@ -537,12 +584,12 @@ def mudar_id(request):
 
 
 def mudar_classe(request):
-
     personagens = []
     conta = request.user.username
 
     # Busca todos os personagens associados à conta
-    with connections['muonline'].cursor() as cursor:
+    conn = conexao_mssql()  # Usar a conexão global
+    with conn.cursor() as cursor:
         cursor.execute("SELECT Name FROM Character WHERE AccountID = %s", [conta])
         personagens = [row[0] for row in cursor.fetchall()]
 
@@ -557,16 +604,9 @@ def mudar_classe(request):
             nova_classe = form.cleaned_data['nova_classe']  # Nova classe
             senha = form.cleaned_data['senha']  # Senha fornecida pelo usuário
 
-            conta = request.user.username
-            personagens = []
-
             try:
-                # Busca os personagens associados à conta
-                with connections['muonline'].cursor() as cursor:
-                    cursor.execute("SELECT Name FROM Character WHERE AccountID = %s", [conta])
-                    personagens = [row[0] for row in cursor.fetchall()]
-
-                    # Verifica se o personagem está online
+                # Verifica se o personagem está online
+                with conn.cursor() as cursor:
                     cursor.execute("SELECT ConnectStat FROM MEMB_STAT WHERE memb___id = %s", [conta])
                     connect_stat = cursor.fetchone()
                     if connect_stat and connect_stat[0] == 1:
@@ -582,7 +622,7 @@ def mudar_classe(request):
                     return render(request, f"{request.current_theme}/mudar_classe.html", {"form": form, "personagens": personagens})
 
                 # Verifica se o personagem atual existe
-                with connections['muonline'].cursor() as cursor:
+                with conn.cursor() as cursor:
                     cursor.execute("SELECT 1 FROM Character WHERE Name = %s AND AccountID = %s", [personagem_atual, conta])
                     if not cursor.fetchone():
                         messages.error(request, "Personagem não encontrado ou não pertence a você.")
@@ -594,13 +634,12 @@ def mudar_classe(request):
                 hex_value = 'F' * numF  
                 # Cria a string no formato esperado '0x' + F's
                 inventory_condition = f"0x{hex_value}"  
-                print(f"Verificando o inventário de {personagem_atual} com a condição: {inventory_condition}")  # Print para depuração
 
                 # Converte a string hexadecimal para o formato binário necessário para comparação
                 inventory_condition = bytes.fromhex(hex_value)  # Converte 'F' repetido em hex para binário
 
                 # Verifica se o inventário está vazio (Inventory = 0x) ou se contém apenas o valor esperado
-                with transaction.atomic(), connections['muonline'].cursor() as cursor:
+                with transaction.atomic(), conn.cursor() as cursor:
                     cursor.execute("""
                         SELECT COUNT(*) 
                         FROM dbo.Character
@@ -615,7 +654,7 @@ def mudar_classe(request):
                         return render(request, f"{request.current_theme}/mudar_classe.html", {"form": form, "personagens": personagens})
 
                 # Lógica para alterar a classe somente após a verificação do inventário
-                with transaction.atomic(), connections['muonline'].cursor() as cursor:
+                with transaction.atomic(), conn.cursor() as cursor:
                     cursor.execute("""
                         UPDATE dbo.Character
                         SET Class = %s
@@ -654,7 +693,8 @@ def mudar_nome(request):
     conta = request.user.username
 
     # Busca todos os personagens associados à conta
-    with connections['muonline'].cursor() as cursor:
+    conn = conexao_mssql()  # Usar a conexão global
+    with conn.cursor() as cursor:
         cursor.execute("SELECT Name FROM Character WHERE AccountID = %s", [conta])
         personagens = [row[0] for row in cursor.fetchall()]
 
@@ -668,7 +708,7 @@ def mudar_nome(request):
 
             try:
                 # Verifica a senha do usuário
-                with connections['muonline'].cursor() as cursor:
+                with conn.cursor() as cursor:
                     cursor.execute(f"SELECT {columnsMEMB_INFO['password']} FROM MEMB_INFO WHERE {columnsMEMB_INFO['nick']} = %s", [conta])
                     senha_bd = cursor.fetchone()
 
@@ -682,7 +722,7 @@ def mudar_nome(request):
                     return render(request, f"{request.current_theme}/mudar_nome.html", {"form": form, "personagens": personagens})
 
                 # Verifica se o personagem atual existe
-                with connections['muonline'].cursor() as cursor:
+                with conn.cursor() as cursor:
                     cursor.execute("SELECT 1 FROM Character WHERE Name = %s AND AccountID = %s", [personagem_atual, conta])
                     if not cursor.fetchone():
                         messages.error(request, "Personagem não encontrado ou não pertence a você.")
@@ -696,7 +736,7 @@ def mudar_nome(request):
                         return render(request, f"{request.current_theme}/mudar_nome.html", {"form": form, "personagens": personagens})
 
                 # Atualiza o nome nos locais onde é referenciado
-                with transaction.atomic(), connections['muonline'].cursor() as cursor:
+                with transaction.atomic(), conn.cursor() as cursor:
                     def safe_update(query, params):
                         try:
                             cursor.execute(query, params)

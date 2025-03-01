@@ -1,0 +1,12 @@
+asgiref==3.8.1
+Django==5.0.12
+django-mssql-backend==2.8.1
+django-pytds==1.5
+mssql-django==1.5
+mysqlclient==2.2.7
+pillow==11.1.0
+pymssql==2.3.2
+python-tds==1.16.0
+pytz==2025.1
+sqlparse==0.5.3
+tzdata==2025.1

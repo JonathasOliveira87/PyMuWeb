@@ -126,7 +126,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "Site" / "templates",  # O Django vai procurar os arquivos estáticos em 'Site/templates'
 ]
 STATIC_URL = '/static/'  # URL base para acessar os arquivos estáticos
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 # Configuração para arquivos carregados pelo usuário (não estáticos)
